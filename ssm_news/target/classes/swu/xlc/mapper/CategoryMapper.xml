@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="swu.xlc.mapper.CategoryMapper">
+
+    <select id="total" resultType="int">
+        select count(*) from category
+    </select>
+
+    <select id="getAll" resultType="Category">
+        select * from category order by id desc
+        <if test="start!=null and count!=null">
+            limit #{start} , #{count}
+        </if>
+    </select>
+
+    <select id="list" resultType="Category">
+        select * from category
+    </select>
+
+    <delete id="deleteById">
+        delete from category where id = #{id}
+    </delete>
+
+    <insert id="addCategory" useGeneratedKeys="true" keyProperty="id" parameterType="Category">
+        insert into category (name) values (#{name})
+    </insert>
+
+    <select id="selectByNewCid" parameterType="int" resultType="swu.xlc.domain.Category">
+        select * from category where id = #{id}
+    </select>
+
+    <!--从分类查新闻-->
+    <!--根据ID查询分类信息，返回resultMap(包括分类下的New)-->
+    <select id="selectById" parameterType="int" resultMap="categoryResultMap">
+        select * from category where id = #{id}
+    </select>
+    <!--映射resultMap-->
+    <resultMap id="categoryResultMap" type="swu.xlc.domain.Category">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <!--一对多关联映射-->
+        <collection property="news" javaType="ArrayList"
+                    column="id" ofType="swu.xlc.domain.New"
+                    select="swu.xlc.mapper.NewMapper.selectNewByCategoryId" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="title" column="title"/>
+            <result property="content" column="content"/>
+            <result property="time" column="time"/>
+        </collection>
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="swu.xlc.mapper.CommentMapper">
+
+    <!--增加评论-->
+    <insert id="addComment" parameterType="swu.xlc.domain.Comment" useGeneratedKeys="true" keyProperty="id" >
+        insert into comment (time , text , nid) values (#{time} , #{text} , #{anew.id})
+    </insert>
+
+    <!--从新闻查评论-->
+    <select id="selectCommentByNewId" resultMap="commentMap" parameterType="int">
+        select * from comment where nid = #{id}
+    </select>
+
+    <resultMap id="commentMap" type="swu.xlc.domain.Comment">
+        <id property="id" column="id"/>
+        <result property="time" column="time"/>
+        <result property="text" column="text"/>
+        <association property="anew" javaType="swu.xlc.domain.New" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="title" column="title"/>
+            <result property="content" column="content" />
+            <result property="time" column="time"/>
+        </association>
+    </resultMap>
+
+    <!--查询评论数目-->
+    <select id="total" resultType="int">
+        select count(*) from comment
+    </select>
+
+    <!--查看所有评论-->
+    <select id="getAll" resultType="Comment">
+        select * from comment order by id desc
+        <if test="start!=null and count!=null">
+            limit #{start} , #{count}
+        </if>
+    </select>
+
+    <!--根据ID删除评论-->
+    <delete id="deleteCommentById" >
+        delete from comment where id = #{id}
+    </delete>
+
+</mapper>

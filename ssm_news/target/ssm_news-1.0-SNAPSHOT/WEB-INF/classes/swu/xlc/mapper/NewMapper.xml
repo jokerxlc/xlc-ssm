@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="swu.xlc.mapper.NewMapper">
+
+    <!--查询新闻数目-->
+    <select id="total" resultType="int">
+        select count(*) from new
+    </select>
+
+    <!--分页查询所有新闻-->
+    <select id="getAll" resultMap="newsMap">
+        select * from new order by id desc
+        <if test="start!=null and count!=null">
+            limit #{start} , #{count}
+        </if>
+    </select>
+    <resultMap id="newsMap" type="swu.xlc.domain.New">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+        <association property="category" javaType="swu.xlc.domain.Category"
+                     column="cid" select="swu.xlc.mapper.CategoryMapper.selectByNewCid"
+                     fetchType="lazy"/>
+    </resultMap>
+
+    <!--根据ID查询新闻-->
+    <select id="selectById" parameterType="int" resultMap="anewMap" >
+        select * from new where id = #{id}
+    </select>
+    <resultMap id="anewMap" type="swu.xlc.domain.New">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+        <association property="category" javaType="swu.xlc.domain.Category"
+                     column="cid" select="swu.xlc.mapper.CategoryMapper.selectByNewCid"
+                     fetchType="lazy"/>
+    </resultMap>
+
+    <!--从分类查新闻-->
+    <select id="selectNewByCategoryId" resultMap="newMap" parameterType="int">
+        select * from new where cid = #{id} order by id desc
+    </select>
+    <!--映射resultMap-->
+    <resultMap id="newMap" type="swu.xlc.domain.New">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+        <!--多对一关联映射-->
+        <association property="category" javaType="swu.xlc.domain.Category" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+    </resultMap>
+
+    <!--从新闻查评论-->
+    <select id="viewNew" resultMap="viewNewMap" parameterType="int">
+        select * from new where id = #{id}
+    </select>
+    <resultMap id="viewNewMap" type="swu.xlc.domain.New">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+        <association property="category" column="cid"
+                     select="swu.xlc.mapper.CategoryMapper.selectByNewCid"
+                     javaType="swu.xlc.domain.Category" fetchType="lazy"/>
+        <collection property="comments" javaType="ArrayList"
+                    column="id" ofType="swu.xlc.domain.Comment"
+                    select="swu.xlc.mapper.CommentMapper.selectCommentByNewId" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result column="time" property="time"/>
+            <result property="text" column="text"/>
+        </collection>
+    </resultMap>
+
+    <!--添加新闻-->
+    <insert id="addNew" parameterType="New" useGeneratedKeys="true" keyProperty="id">
+        insert into new (title , content , time , cid ) values (#{title} , #{content} , #{time} , #{category.id} )
+    </insert>
+
+    <!--根据ID删除新闻-->
+    <delete id="deleteNewById">
+        delete from new where id = #{id}
+    </delete>
+
+    <!--修改新闻-->
+    <update id="updateNew" >
+        update new set title = #{title} , content = #{content} , cid = #{category.id} where id =#{id}
+    </update>
+
+    <!--查询分类下最新的五条数据-->
+    <select id="selectFiveByCid" resultMap="cnewMap">
+        select * from new where cid = #{id}  order by id desc limit 5
+    </select>
+    <resultMap id="cnewMap" type="swu.xlc.domain.New">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="time" column="time"/>
+        <!--多对一关联映射-->
+        <association property="category" javaType="swu.xlc.domain.Category" fetchType="lazy">
+            <id property="id" column="id"/>
+            <result property="name" column="name"/>
+        </association>
+    </resultMap>
+
+</mapper>
